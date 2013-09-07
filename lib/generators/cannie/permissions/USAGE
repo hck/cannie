@@ -1,0 +1,3 @@
+Description:
+  The cannie:permissions generator creates an Permissions class in the models
+  directory.
