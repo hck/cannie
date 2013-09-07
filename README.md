@@ -65,14 +65,14 @@ To skip checking permissions for controller, add `skip_check_permissions` method
 
 Checking of permissions on per-action basis is done by calling `permit!` method inside of controller's actions:
 
-   class PostsController < ApplicationController
-     check_permissions
+    class PostsController < ApplicationController
+      check_permissions
 
-     def index
-       @posts = Posts.all
-       permit! :read, on: posts # checks whether user able to read fetched posts
-     end
-   end
+      def index
+        @posts = Posts.all
+        permit! :read, on: posts # checks whether user able to read fetched posts
+      end
+    end
 
 ### Handling of unpermitted access
 
