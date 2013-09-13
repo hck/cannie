@@ -37,7 +37,8 @@ module Cannie
     # @return result of permissions check
     #
     def can?(action, on: nil)
-      rules_for(action, on).all? do |rule|
+      rules = rules_for(action, on)
+      rules.present? && rules.all? do |rule|
         rule.permits?(*on)
       end
     end

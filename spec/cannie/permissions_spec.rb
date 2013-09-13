@@ -46,6 +46,11 @@ describe Cannie::Permissions do
 
     let(:permissions) { subject.new }
 
+    it 'returns false if no rules for action exists' do
+      permissions.stub(:rules).and_return([])
+      expect(permissions.can? :read, on: [2, 4, 8]).to be_false
+    end
+
     it 'returns true if all rules for action & subject are permitted' do
       expect(permissions.can? :read, on: [2, 4, 8]).to be_true
     end
