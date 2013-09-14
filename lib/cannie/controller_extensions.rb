@@ -19,8 +19,8 @@ module Cannie
       def check_permissions(options={})
         after_action(options.slice(:only, :except)) do |controller|
           next if controller.permitted?
-          next if options[:if] && !controller.instance_eval(options[:if])
-          next if options[:unless] && controller.instance_eval(options[:unless])
+          next if options[:if] && !controller.instance_eval(&options[:if])
+          next if options[:unless] && controller.instance_eval(&options[:unless])
           raise CheckPermissionsNotPerformed, 'Action failed the check_permissions because it does not calls permit! method. Add skip_check_permissions to bypass this check.'
         end
       end

@@ -1,20 +1,13 @@
 require 'spec_helper'
 
-class TestController < ActionController::Base
-  def action
-  end
-end
-
 describe Cannie::ControllerExtensions do
-  subject { TestController.new }
+  let(:klass) {
+    Class.new(ActionController::Base) do
+      def action; end
+    end
+  }
 
-  let(:before_filters) do
-    subject.class._process_action_callbacks.select{|f| f.kind == :before}.map(&:raw_filter)
-  end
-
-  let(:after_filters) do
-    subject.class._process_action_callbacks.select{|f| f.kind == :after}.map(&:raw_filter)
-  end
+  subject { klass.new }
 
   let(:permissions) do
     Class.new do
@@ -30,66 +23,51 @@ describe Cannie::ControllerExtensions do
 
   describe '.check_permissions' do
     describe 'without conditions' do
-      before do
-        TestController.class_eval do
-          check_permissions
-        end
-      end
+      before { klass.check_permissions }
 
       it 'raises exception if controller.permitted? evaluates to false' do
-        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+        expect { subject.run_callbacks(:process_action) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
       end
 
       it 'does not raise exception if controller.permitted? evaluates to true' do
         subject.stub(:permitted?).and_return(true)
-        expect { after_filters.first.call(subject) }.not_to raise_error
+        expect { subject.run_callbacks(:process_action) }.not_to raise_error
       end
     end
 
     describe 'with if condition' do
-      before do
-        TestController.class_eval do
-          check_permissions if: ->{ self.var == true }
-        end
-      end
+      before { klass.check_permissions if: :condition? }
 
       it 'raises exception if :if block executed in controller scope returns true' do
-        TestController.stub(:var).and_return(true)
-        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+        subject.stub(:condition?).and_return(true)
+        expect { subject.run_callbacks(:process_action) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
       end
 
       it 'does not raise exception if :if block executed in controller scope returns false' do
-        TestController.stub(:var).and_return(false)
-        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+        subject.stub(:condition?).and_return(false)
+        expect { subject.run_callbacks(:process_action) }.not_to raise_error
       end
     end
 
     describe 'with unless condition' do
-      before do
-        TestController.class_eval do
-          check_permissions unless: ->{ self.var == true }
-        end
-      end
+      before { klass.check_permissions unless: :condition? }
 
       it 'raises exception if :unless block executed in controller scope returns false' do
-        TestController.stub(:var).and_return(true)
-        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+        subject.stub(:condition?).and_return(false)
+        expect { subject.run_callbacks(:process_action) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
       end
 
       it 'does not raise exception if :unless block executed in controller scope returns false' do
-        TestController.stub(:var).and_return(false)
-        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+        subject.stub(:condition?).and_return(true)
+        expect { subject.run_callbacks(:process_action) }.not_to raise_error
       end
     end
   end
 
   describe '.skip_check_permissions' do
     it 'sets @_permitted to true to bypass permissions checking' do
-      subject.class.instance_eval do
-        skip_check_permissions
-      end
-
-      before_filters.first.call(subject)
+      klass.skip_check_permissions
+      subject.run_callbacks(:process_action)
       expect(subject.permitted?).to be_true
     end
   end
@@ -124,6 +102,28 @@ describe Cannie::ControllerExtensions do
     it 'raises AccessDenied error if action is not allowed on subject' do
       subject.stub(:current_permissions).and_return permissions.new
       expect { subject.permit! :update, on: [3,6,11] }.to raise_error(Cannie::ActionForbidden)
+    end
+  end
+
+  describe '#current_permissions' do
+    before(:all) do
+      Permissions = Class.new do
+        attr_reader :user
+        def initialize(user)
+          @user = user
+        end
+      end
+    end
+
+    before { subject.stub(:current_user).and_return 'User' }
+
+    it 'creates new Permissions object' do
+      expect(subject.current_permissions).to be_instance_of(Permissions)
+    end
+
+    it 'passes current_user to Permissions::new' do
+      subject.stub(:current_user).and_return 'User'
+      expect(subject.current_permissions.user).to eq('User')
     end
   end
 end
