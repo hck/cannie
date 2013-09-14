@@ -1,8 +1,6 @@
 require 'spec_helper'
 
 class TestController < ActionController::Base
-  check_permissions
-
   def action
   end
 end
@@ -31,21 +29,57 @@ describe Cannie::ControllerExtensions do
   end
 
   describe '.check_permissions' do
-    it 'raises exception if controller.permitted? evaluates to false' do
-      expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+    describe 'without conditions' do
+      before do
+        TestController.class_eval do
+          check_permissions
+        end
+      end
+
+      it 'raises exception if controller.permitted? evaluates to false' do
+        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+      end
+
+      it 'does not raise exception if controller.permitted? evaluates to true' do
+        subject.stub(:permitted?).and_return(true)
+        expect { after_filters.first.call(subject) }.not_to raise_error
+      end
     end
 
-    it 'does not raise exception if controller.permitted? evaluates to true' do
-      subject.stub(:permitted?).and_return(true)
-      expect { after_filters.first.call(subject) }.not_to raise_error
+    describe 'with if condition' do
+      before do
+        TestController.class_eval do
+          check_permissions if: ->{ self.var == true }
+        end
+      end
+
+      it 'raises exception if :if block executed in controller scope returns true' do
+        TestController.stub(:var).and_return(true)
+        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+      end
+
+      it 'does not raise exception if :if block executed in controller scope returns false' do
+        TestController.stub(:var).and_return(false)
+        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+      end
     end
 
-    it 'raises exception if :if block executed in controller scope returns false' do
-      pending
-    end
+    describe 'with unless condition' do
+      before do
+        TestController.class_eval do
+          check_permissions unless: ->{ self.var == true }
+        end
+      end
 
-    it 'raises exception if :if block executed in controller scope returns true' do
-      pending
+      it 'raises exception if :unless block executed in controller scope returns false' do
+        TestController.stub(:var).and_return(true)
+        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+      end
+
+      it 'does not raise exception if :unless block executed in controller scope returns false' do
+        TestController.stub(:var).and_return(false)
+        expect { after_filters.first.call(subject) }.to raise_error(Cannie::CheckPermissionsNotPerformed)
+      end
     end
   end
 
