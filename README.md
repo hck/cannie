@@ -55,6 +55,38 @@ To be sure that permissions checking is handled in each action of your controlle
       #...
     end
 
+It's also possible to set a condition by specifying `:if` or `:unless` options for `check_permissions` call:
+
+    class PostsController < ApplicationController
+      check_permissions if: :some_method
+
+      #...
+    end
+
+or
+
+    class PostsController < ApplicationController
+      check_permissions if: ->(controller) { controller.some_method }
+
+      #...
+    end
+
+or
+
+    class PostsController < ApplicationController
+      check_permissions unless: some_method
+
+      #...
+    end
+
+or
+
+    class PostsController < ApplicationController
+      check_permissions unless: ->(controller) { controller.some_method }
+
+      #...
+    end
+
 To skip checking permissions for controller, add `skip_check_permissions` method call:
 
     class PagesController < ApplicationController
