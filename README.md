@@ -106,6 +106,43 @@ Checking of permissions on per-action basis is done by calling `permit!` method 
       end
     end
 
+It is possible to check permissions for resource actions. Currently collection and entry name is taken from resource controller name (some_namespace/entries_controller => @entries/@entry instance variables).
+To add this behavior add `permit_resource_actions` instead of `check_permissions` with no need to write custom `permit!` calls in each resource action:
+
+    class EntriesController < ApplicationController
+      permit_resource_actions
+
+      def index
+        @entries = Entry.all
+      end
+
+      def show
+        @entry = Entry.find(params[:id])
+      end
+    end
+
+For now only standard resource actions supported: `index`, `show`, `new`, `create`, `edit`, `update`, `destroy`.
+To define `Permissions` properly, use this mapping of action names to permissions:
+ - :index => :list
+ - :show => :read
+ - :new or :create => :create
+ - :edit or :update => :update
+ - :destroy => :destroy
+
+ Sample `Permissions` class to deal with all resource actions for `EntriesController`:
+
+    class Permissions
+      include Cannie::Permissions
+
+      def initialize(user)
+        allow :list, on: Entry    # index action
+        allow :read, on: Entry    # show action
+        allow :create, on: Entry  # new & create actions
+        allow :update, on: Entry  # edit & update actions
+        allow :destroy, on: Entry # destroy action
+      end
+    end
+
 ### Handling of unpermitted access
 
 If user is not permitted for appropriate action, `Cannie::ActionForbidden` exception will be raised.

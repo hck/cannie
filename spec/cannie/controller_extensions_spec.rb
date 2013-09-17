@@ -4,6 +4,17 @@ describe Cannie::ControllerExtensions do
   let(:klass) {
     Class.new(ActionController::Base) do
       def action; end
+      def index
+        @entries = [1,2,3,4,5]
+        render text: @entries.to_s
+      end
+
+      %i(show new create edit update destroy).each do |action|
+        define_method action do
+          @entry = 123
+          render text: @entry.to_s
+        end
+      end
     end
   }
 
@@ -17,6 +28,17 @@ describe Cannie::ControllerExtensions do
         allow :update, on: Array do |*attrs|
           attrs.all?{|v| v % 3 == 0}
         end
+      end
+    end
+  end
+
+  let(:resource_permissions) do
+    Class.new do
+      include Cannie::Permissions
+
+      def initialize
+        allow :list, on: Array
+        %i(read create update destroy).each{ |v| allow v, on: Fixnum }
       end
     end
   end
@@ -69,6 +91,37 @@ describe Cannie::ControllerExtensions do
       klass.skip_check_permissions
       subject.run_callbacks(:process_action)
       expect(subject.permitted?).to be_true
+    end
+  end
+
+  describe 'permit_resource_actions' do
+    before do
+      klass.permit_resource_actions
+      subject.stub(:controller_name).and_return('test/entries')
+      subject.stub(:current_permissions).and_return resource_permissions.new
+    end
+
+    it 'calls permit! for index with valid params' do
+      expect(subject).to receive(:permit!).with(Cannie::ControllerExtensions::RESOURCE_ACTIONS[:index], on: [1,2,3,4,5])
+      subject.dispatch(:index, ActionDispatch::TestRequest.new)
+    end
+
+    it 'calls permit! for show with valid params' do
+      expect(subject).to receive(:permit!).with(Cannie::ControllerExtensions::RESOURCE_ACTIONS[:show], on: 123)
+      subject.dispatch(:show, ActionDispatch::TestRequest.new)
+    end
+
+    %i(index show).each do |action|
+      it "permits #{action} action" do
+        subject.dispatch(action, ActionDispatch::TestRequest.new)
+        expect(subject.permitted?).to be_true
+      end
+    end
+
+    it 'raises Cannie::ActionForbidden error up the stack' do
+      expect(subject).to receive(:index).and_raise(Cannie::ActionForbidden)
+      expect { subject.dispatch(:index, ActionDispatch::TestRequest.new) }.to raise_error(Cannie::ActionForbidden)
+      expect(subject.response_body).to be_nil
     end
   end
 
