@@ -129,7 +129,7 @@ To define `Permissions` properly, use this mapping of action names to permission
  - :edit or :update => :update
  - :destroy => :destroy
 
- Sample `Permissions` class to deal with all resource actions for `EntriesController`:
+Sample `Permissions` class to deal with all resource actions for `EntriesController`:
 
     class Permissions
       include Cannie::Permissions
