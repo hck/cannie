@@ -2,41 +2,62 @@ require 'spec_helper'
 
 describe Cannie::Rule do
   describe '#initialize' do
-    it 'stores passed actions' do
-      actions = %i(read create update delete)
-      rule = described_class.new *actions, Array
-      expect(rule.actions).to eq(actions)
+    it 'stores passed action' do
+      rule = described_class.new :index, 'entries'
+      expect(rule.action).to eq(:index)
     end
 
     it 'stores passed subject' do
-      rule = described_class.new :read, Array
-      expect(rule.subject).to eq(Array)
-    end
-
-    it 'scores passed block' do
-      rule = described_class.new(:read, Array){ |*attrs| attrs.all?{ |v| v % 2 == 0 } }
-      expect(rule.condition.call(2,4,8)).to be_true
+      rule = described_class.new :index, 'entries'
+      expect(rule.subject).to eq('entries')
     end
   end
 
-  describe '#permits?' do
-    let(:rule) do
-      described_class.new(:read, Array) do |*attrs|
-        attrs.all?{ |v| v % 2 == 0 }
+  describe 'applies_to?' do
+    let(:permissions) do
+      Class.new do
+        def initialize(is_admin=false, is_guest=false)
+          @is_admin, @is_guest = is_admin, is_guest
+        end
+
+        def admin?
+          !!@is_admin
+        end
+
+        def guest?
+          !!@is_guest
+        end
       end
     end
 
-    it 'returns true if result of executing condition is true' do
-      expect(rule.permits?(2,4,8)).to be_true
+    it 'returns true if no conditions passed in initialize' do
+      rule = described_class.new(:index, 'entries')
+      expect(rule.applies_to?(Array)).to be_true
     end
 
-    it 'returns false if result of executing condition is false' do
-      expect(rule.permits?(1,4,8)).to be_false
+    it 'returns true if passed if-condition evaluated in scope of passed argument return true' do
+      rule = described_class.new(:index, 'entries', if: -> { admin? })
+      expect(rule.applies_to?(permissions.new(true))).to be_true
     end
 
-    it 'returns true for any subject if rule subject is :all' do
-      rule = described_class.new(:read, :all)
-      expect(rule.permits?(1,2,3)).to be_true
+    it 'returns false if passed if-condition evaluated in scope of passed argument return false' do
+      rule = described_class.new(:index, 'entries', if: -> { admin? })
+      expect(rule.applies_to?(permissions.new())).to be_false
+    end
+
+    it 'returns true if passed unless-condition evaluated in scope of passed argument return false' do
+      rule = described_class.new(:index, 'entries', unless: -> { admin? })
+      expect(rule.applies_to?(permissions.new)).to be_true
+    end
+
+    it 'returns false if passed unless-condition evaluated in scope of passed argument return true' do
+      rule = described_class.new(:index, 'entries', unless: -> { admin? })
+      expect(rule.applies_to?(permissions.new(true))).to be_false
+    end
+
+    it 'returns true if all conditions returned true' do
+      rule = described_class.new(:index, 'entries', if: -> { admin? }, unless: -> { guest? })
+      expect(rule.applies_to?(permissions.new(true))).to be_true
     end
   end
 end

@@ -1,71 +1,72 @@
 module Cannie
-  # This module provides possibility to define permissions using "allow" method
-  #
-  #   class Permissions
-  #     include Cannie::Permissions
-  #
-  #     def initialize(user)
-  #       allow :read, on: Model
-  #       allow :manage, on: Model do |*entries|
-  #         entries.all?{|v| v.user == user}
-  #       end
-  #     end
-  #   end
-  #
   module Permissions
-    # Define rules for further permissions checking
-    #
-    #   allow :read, on: Model
-    #
-    # @param actions
-    # @param on
-    # @return array of rules
-    def allow(*actions, on: nil, &block)
-      rules << Rule.new(*actions, on, &block)
+    extend ActiveSupport::Concern
+
+    included do
+      extend ClassMethods
     end
 
-    # Check permission by given action on subject, that is passed in 'on' parameter
-    #
-    #   can? :read, on: Model
-    #
-    # or
-    #
-    #   can? :read, on: models
-    #
-    # @param action
-    # @param on
-    # @return result of permissions check
-    #
-    def can?(action, on: nil)
-      rules = rules_for(action, on)
-      rules.present? && rules.all? do |rule|
-        rule.permits?(*on)
+    module ClassMethods
+      def namespace(name, &block)
+        orig_scope = @scope
+        @scope     = [orig_scope, name].compact.join('/')
+        instance_exec(&block)
+      ensure
+        @scope = orig_scope
+      end
+
+      def controller(name, &block)
+        @controller = name
+        instance_exec(&block)
+      ensure
+        @controller = nil
+      end
+
+      def allow(action, options={})
+        opts = options.slice(:if, :unless)
+        subjects = Array(@controller || options[:on]).map { |v| subject(v) }
+
+        Array(action).each do |action_name|
+          subjects.each do |subj|
+            rules << Rule.new(action_name, subj, opts)
+          end
+        end
+      end
+
+      def rules
+        @rules ||= []
+      end
+
+      private
+      def subject(name)
+        (name == :all && name) || ([@scope, name].compact.join('/'))
       end
     end
 
-    # Permit access for action on a subject
-    #
-    #   permit! :read, on: Model
-    #
-    # or
-    #
-    #   permit! :manage, on: models
-    #
-    # @param [Symbol] Action
-    #
-    def permit!(action, on: nil)
-      raise Cannie::ActionForbidden unless can?(action, on: on)
+    attr_reader :user
+
+    def initialize(user)
+      @user = user
+    end
+
+    def can?(action, subject)
+      rules_for(action, subject).present?
+    end
+
+    def permit!(action, subject)
+      raise Cannie::ActionForbidden unless can?(action, subject)
     end
 
     private
     def rules
-      @rules ||= []
+      @rules ||= self.class.rules.select { |rule| rule.applies_to?(self) }
     end
 
     def rules_for(action, subject)
-      klass = subject.is_a?(Class) ? subject : subject.class
-      rules.select do |r|
-        r.actions.include?(action) && (subject == :all || klass <= r.subject)
+      subject = subject.respond_to?(:controller_path) ? subject.controller_path : subject.to_s
+
+      rules.select do |rule|
+        rule.action.to_sym == action.to_sym && (rule.subject == :all || rule.subject == subject)
       end
     end
   end
