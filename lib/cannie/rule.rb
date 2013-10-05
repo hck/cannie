@@ -14,11 +14,19 @@ module Cannie
     attr_reader :_if, :_unless
 
     def if?(permissions)
-      _if ? permissions.instance_exec(&_if) : true
+      _if ? exec_condition(_if, permissions) : true
     end
 
     def unless?(permissions)
-      _unless ? !permissions.instance_exec(&_unless) : true
+      _unless ? !exec_condition(_unless, permissions) : true
+    end
+
+    def exec_condition(condition, context)
+      if condition.is_a?(Symbol)
+        context.instance_eval(&condition)
+      else
+        context.instance_exec(&condition)
+      end
     end
   end
 end

@@ -63,6 +63,14 @@ or
 
     allow :index, on: :posts, unless: ->{ user.guest? }
 
+or
+
+    allow :index, on: :posts, if: &:admin?
+
+or
+
+    allow :index, on: :posts, unless: &:admin?
+
 These conditions are executed in context of `Permissions` object and its possible to use `user` method to access user that was passed to `Permissions::initialize`.
 
 ### Checking permissions

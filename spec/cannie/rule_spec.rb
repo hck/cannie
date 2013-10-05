@@ -42,7 +42,17 @@ describe Cannie::Rule do
 
     it 'returns false if passed if-condition evaluated in scope of passed argument return false' do
       rule = described_class.new(:index, 'entries', if: -> { admin? })
-      expect(rule.applies_to?(permissions.new())).to be_false
+      expect(rule.applies_to?(permissions.new)).to be_false
+    end
+
+    it 'evaluates if-condition specified as symbol' do
+      rule = described_class.new(:index, 'entries', if: :admin?)
+      expect(rule.applies_to?(permissions.new(true))).to be_true
+    end
+
+    it 'evaluates if-condition specified as proc' do
+      rule = described_class.new(:index, 'entries', if: proc { admin? })
+      expect(rule.applies_to?(permissions.new(true))).to be_true
     end
 
     it 'returns true if passed unless-condition evaluated in scope of passed argument return false' do
@@ -53,6 +63,16 @@ describe Cannie::Rule do
     it 'returns false if passed unless-condition evaluated in scope of passed argument return true' do
       rule = described_class.new(:index, 'entries', unless: -> { admin? })
       expect(rule.applies_to?(permissions.new(true))).to be_false
+    end
+
+    it 'evaluates unless-condition specified as symbol' do
+      rule = described_class.new(:index, 'entries', unless: :admin?)
+      expect(rule.applies_to?(permissions.new(false))).to be_true
+    end
+
+    it 'evaluates unless-condition specified as proc' do
+      rule = described_class.new(:index, 'entries', unless: proc { admin? })
+      expect(rule.applies_to?(permissions.new(false))).to be_true
     end
 
     it 'returns true if all conditions returned true' do
