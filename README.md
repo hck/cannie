@@ -1,5 +1,7 @@
 # Cannie
 
+[![Build Status](https://travis-ci.org/hck/cannie.png)](https://travis-ci.org/hck/cannie)
+
 Cannie is a gem for authorization/permissions checking on per-controller/per-action basis.
 
 ## Installation
