@@ -5,7 +5,7 @@ SimpleCov.start
 require 'rubygems'
 
 require 'active_support/concern'
-require 'action_controller/railtie'
+require 'action_controller'
 require 'cannie'
 
 RSpec.configure do |config|
