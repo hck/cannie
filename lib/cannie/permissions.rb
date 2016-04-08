@@ -47,10 +47,19 @@ module Cannie
       @user = user
     end
 
+    # Checks if at least one rule for specified action add subject is present
+    #
+    # @param [Symbol] action
+    # @param [String, Symbol] subject
+    # @return [Boolean]
     def can?(action, subject)
       rules_for(action, subject).present?
     end
 
+    # Raises error Cannie::ActionForbidden if there is no rules for specified action and subject
+    #
+    # @param [Symbol] action
+    # @param [String, Symbol] subject
     def permit!(action, subject)
       raise Cannie::ActionForbidden unless can?(action, subject)
     end

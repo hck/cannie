@@ -15,7 +15,7 @@ module Cannie
       #     # ...
       #   end
       #
-      def check_permissions(options={})
+      def check_permissions(options = {})
         _if, _unless = options.values_at(:if, :unless)
         before_action(options.slice(:only, :except)) do |controller|
           next if controller.permitted?
