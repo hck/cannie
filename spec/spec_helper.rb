@@ -6,7 +6,6 @@ end
 
 require 'rubygems'
 
-require 'active_support/concern'
 require 'action_controller'
 require 'cannie'
 

@@ -3,7 +3,6 @@ PATH
   specs:
     cannie (0.2.2)
       actionpack (>= 4.0)
-      activesupport (>= 4.0)
 
 GEM
   remote: https://rubygems.org/
