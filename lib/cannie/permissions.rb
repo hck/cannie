@@ -1,9 +1,7 @@
 module Cannie
   module Permissions
-    extend ActiveSupport::Concern
-
-    included do
-      extend ClassMethods
+    def self.included(base)
+      base.extend ClassMethods
     end
 
     module ClassMethods

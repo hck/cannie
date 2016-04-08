@@ -1,10 +1,9 @@
 module Cannie
   module ControllerExtensions
-    extend ActiveSupport::Concern
-
-    included do
-      extend ClassMethods
-      helper_method :can?, :current_permissions
+    def self.extended(base)
+      base.include self
+      base.extend ClassMethods
+      base.helper_method :can?, :current_permissions
     end
 
     module ClassMethods
@@ -75,7 +74,5 @@ module Cannie
 end
 
 if defined? ActionController::Base
-  ActionController::Base.class_eval do
-    include Cannie::ControllerExtensions
-  end
+  ActionController::Base.extend Cannie::ControllerExtensions
 end
