@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Cannie::ControllerExtensions do
+RSpec.describe Cannie::ControllerExtensions do
   let(:klass) do
     Class.new(ActionController::Base) do
       def action
@@ -29,19 +29,23 @@ describe Cannie::ControllerExtensions do
   end
 
   describe '.check_permissions' do
-    before { subject.stub(:current_permissions).and_return(permissions.new('User')) }
+    before do
+      allow(subject).to receive(:current_permissions).and_return(permissions.new('User'))
+    end
 
     describe 'without conditions' do
-      before do
-        klass.check_permissions
-      end
+      before { klass.check_permissions }
 
       it 'raises exception if no rules for action & subject exist' do
-        expect { subject.dispatch(:action, ActionDispatch::TestRequest.new) }.to raise_error(Cannie::ActionForbidden)
+        expect {
+          subject.dispatch(:action, ActionDispatch::TestRequest.new)
+        }.to raise_error(Cannie::ActionForbidden)
       end
 
       it 'does not raise exception rules match action & subject' do
-        expect { subject.dispatch(:index, ActionDispatch::TestRequest.new) }.not_to raise_error
+        expect {
+          subject.dispatch(:index, ActionDispatch::TestRequest.new)
+        }.not_to raise_error
       end
     end
 
@@ -49,13 +53,17 @@ describe Cannie::ControllerExtensions do
       before { klass.check_permissions if: :condition? }
 
       it 'raises exception if :if block executed in controller scope returns true and no rules for action/subject' do
-        subject.stub(:condition?).and_return(true)
-        expect { subject.dispatch(:action, ActionDispatch::TestRequest.new) }.to raise_error(Cannie::ActionForbidden)
+        allow(subject).to receive(:condition?).and_return(true)
+        expect {
+          subject.dispatch(:action, ActionDispatch::TestRequest.new)
+        }.to raise_error(Cannie::ActionForbidden)
       end
 
       it 'does not raise exception if :if block executed in controller scope returns false' do
-        subject.stub(:condition?).and_return(false)
-        expect { subject.dispatch(:action, ActionDispatch::TestRequest.new) }.not_to raise_error
+        allow(subject).to receive(:condition?).and_return(false)
+        expect {
+          subject.dispatch(:action, ActionDispatch::TestRequest.new)
+        }.not_to raise_error
       end
     end
 
@@ -63,22 +71,26 @@ describe Cannie::ControllerExtensions do
       before { klass.check_permissions unless: :condition? }
 
       it 'raises exception if :unless block executed in controller scope returns false' do
-        subject.stub(:condition?).and_return(false)
-        expect { subject.dispatch(:action, ActionDispatch::TestRequest.new) }.to raise_error(Cannie::ActionForbidden)
+        allow(subject).to receive(:condition?).and_return(false)
+        expect {
+          subject.dispatch(:action, ActionDispatch::TestRequest.new)
+        }.to raise_error(Cannie::ActionForbidden)
       end
 
       it 'does not raise exception if :unless block executed in controller scope returns false' do
-        subject.stub(:condition?).and_return(true)
-        expect { subject.dispatch(:action, ActionDispatch::TestRequest.new) }.not_to raise_error
+        allow(subject).to receive(:condition?).and_return(true)
+        expect {
+          subject.dispatch(:action, ActionDispatch::TestRequest.new)
+        }.not_to raise_error
       end
     end
   end
 
   describe '.skip_check_permissions' do
-    it 'sets @_permitted to true to bypass permissions checking' do
+    it 'bypasses permissions checking' do
       klass.skip_check_permissions
       subject.run_callbacks(:process_action)
-      expect(subject.permitted?).to be_true
+      expect(subject.permitted?).to eq(true)
     end
   end
 
@@ -88,13 +100,13 @@ describe Cannie::ControllerExtensions do
     end
 
     it 'returns true if action allowed on subject' do
-      subject.stub(:current_permissions).and_return permissions.new('user')
-      expect(subject.can? :index, on: klass).to be_true
+      allow(subject).to receive(:current_permissions).and_return permissions.new('user')
+      expect(subject.can? :index, on: klass).to eq(true)
     end
 
     it 'returns false if action not allowed on subject' do
-      subject.stub(:current_permissions).and_return permissions.new('user')
-      expect(subject.can? :action, on: klass).to be_false
+      allow(subject).to receive(:current_permissions).and_return permissions.new('user')
+      expect(subject.can? :action, on: klass).to eq(false)
     end
   end
 
@@ -105,14 +117,14 @@ describe Cannie::ControllerExtensions do
       end
     end
 
-    before { subject.stub(:current_user).and_return 'User' }
+    before { allow(subject).to receive(:current_user).and_return 'User' }
 
     it 'creates new Permissions object' do
       expect(subject.current_permissions).to be_instance_of(Permissions)
     end
 
     it 'passes current_user to Permissions::new' do
-      subject.stub(:current_user).and_return 'User'
+      allow(subject).to receive(:current_user).and_return 'User'
       expect(subject.current_permissions.user).to eq('User')
     end
   end

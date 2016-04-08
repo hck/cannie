@@ -1,7 +1,11 @@
 require 'spec_helper'
 
-describe Cannie::Permissions do
-  subject { Class.new { include Cannie::Permissions } }
+RSpec.describe Cannie::Permissions do
+  subject do
+    Class.new do
+      include Cannie::Permissions
+    end
+  end
 
   let(:permissions) do
     subject.class_exec do
@@ -12,6 +16,7 @@ describe Cannie::Permissions do
 
       allow :new, on: :all
     end
+
     subject.new('user')
   end
 
@@ -58,14 +63,18 @@ describe Cannie::Permissions do
     it 'creates Rule object for specified controller and action' do
       subject.allow :index, on: :entries
       rule = subject.rules.last
-      expect(rule).to be_instance_of(Cannie::Rule)
-      expect(rule.action).to eq(:index)
-      expect(rule.subject).to eq('entries')
+      rule_data = [rule.class, rule.action, rule.subject]
+      expect(rule_data).to eq([Cannie::Rule, :index, 'entries'])
     end
 
     it 'creates Rule object for each of specified actions and controllers' do
       subject.allow [:index, :show], on: [:entries, :comments]
-      expected = [[:index, 'entries'], [:index, 'comments'], [:show, 'entries'], [:show, 'comments']]
+      expected = [
+        [:index, 'entries'],
+        [:index, 'comments'],
+        [:show, 'entries'],
+        [:show, 'comments']
+      ]
       expect(subject.rules.map { |rule| [rule.action, rule.subject] }).to eq(expected)
     end
 
@@ -80,7 +89,11 @@ describe Cannie::Permissions do
         allow :show, on: :comments
       end
 
-      expected = [[:index, 'entries'], [:show, 'entries'], [:show, 'comments']]
+      expected = [
+        [:index, 'entries'],
+        [:show, 'entries'],
+        [:show, 'comments']
+      ]
       expect(subject.rules.map { |rule| [rule.action, rule.subject] }).to eq(expected)
     end
   end
@@ -88,29 +101,29 @@ describe Cannie::Permissions do
   describe '#can?' do
     describe 'when passed as class' do
       it 'returns true if it has at least one rule for corresponding action & subject' do
-        expect(permissions.can?(:index, klass)).to be_true
+        expect(permissions.can?(:index, klass)).to eq(true)
       end
 
       it 'returns true for any subject if rule subject set to :all' do
-        expect(permissions.can?(:new, klass)).to be_true
+        expect(permissions.can?(:new, klass)).to eq(true)
       end
 
       it 'returns false if no rules found for corresponding action & subject' do
-        expect(permissions.can?(:edit, klass)).to be_false
+        expect(permissions.can?(:edit, klass)).to eq(false)
       end
     end
 
     describe 'when passed as string' do
       it 'returns true if it has at least one rule for corresponding action & subject' do
-        expect(permissions.can?(:index, klass.controller_path)).to be_true
+        expect(permissions.can?(:index, klass.controller_path)).to eq(true)
       end
 
       it 'returns true for any subject if rule subject set to :all' do
-        expect(permissions.can?(:new, klass.controller_path)).to be_true
+        expect(permissions.can?(:new, klass.controller_path)).to eq(true)
       end
 
       it 'returns false if no rules found for corresponding action & subject' do
-        expect(permissions.can?(:edit, klass.controller_path)).to be_false
+        expect(permissions.can?(:edit, klass.controller_path)).to eq(false)
       end
     end
   end
@@ -124,5 +137,4 @@ describe Cannie::Permissions do
       expect { permissions.permit!(:index, klass) }.not_to raise_error
     end
   end
-
 end
