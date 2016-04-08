@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cannie (0.2.2)
+    cannie (0.3.0)
       actionpack (>= 4.0)
 
 GEM
