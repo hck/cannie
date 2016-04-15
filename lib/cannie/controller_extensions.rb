@@ -73,9 +73,6 @@ module Cannie
     def current_permissions
       @current_permissions ||= ::Permissions.new(current_user)
     end
-
-    private
-    attr_reader :_permitted
   end
 end
 
