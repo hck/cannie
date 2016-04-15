@@ -6,7 +6,7 @@ module Cannie
     end
 
     module ClassMethods
-      # Method is used to be sure, that permissions checking is handled for each action inside controller.
+      # Adds before action to check permissions before processing the controller's action.
       #
       #   class PostsController < ApplicationController
       #     check_permissions
@@ -14,6 +14,11 @@ module Cannie
       #     # ...
       #   end
       #
+      # @param [Hash] options
+      # @option options [Proc] if permissions are checked when this block is evaluated to true
+      # @option options [Proc] unless permissions are checked when this block is evaluated to false
+      # @option options [Array, Symbol] only action or list of actions for which permissions should be checked
+      # @option options [Array, Symbol] except action or list of actions for which permissions should not be checked
       def check_permissions(options = {})
         _if, _unless = options.values_at(:if, :unless)
         before_action(options.slice(:only, :except)) do |controller|
@@ -24,7 +29,7 @@ module Cannie
         end
       end
 
-      # Skip handling of permissions checking, that was defined by `check_permissions` method
+      # Skip handling of permissions checking, that was defined by `check_permissions` method.
       #
       #   class PostsController < ApplicationController
       #     skip_check_permissions
@@ -38,7 +43,7 @@ module Cannie
       end
     end
 
-    # Checks whether passed action is permitted for passed subject
+    # Checks whether passed action is permitted for passed subject.
     #
     #   can? :index, on: :entries
     #
@@ -53,12 +58,14 @@ module Cannie
     # @param [Symbol] action
     # @param [Object] controller class or controller_path as a string or symbol
     # @return [Boolean] result of checking permission
-    #
     def can?(action, on: nil)
       raise Cannie::SubjectNotSetError, 'Subject should be specified' unless on
       current_permissions.can?(action, on)
     end
 
+    # Returns value of permitted flag, indicating whether permissions check is skipped or not.
+    #
+    # @return [Boolean]
     def permitted?
       !!@_permitted
     end
