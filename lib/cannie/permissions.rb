@@ -5,6 +5,10 @@ module Cannie
     end
 
     module ClassMethods
+      # Defines a namespace for permissions and defines the permissions inside the namespace
+      #
+      # @param [Symbol, String] name name of the namespace
+      # @param [Proc] block block to define permissions inside the namespace
       def namespace(name, &block)
         orig_scope = @scope
         @scope     = [orig_scope, name].compact.join('/')
@@ -13,6 +17,10 @@ module Cannie
         @scope = orig_scope
       end
 
+      # Defines a controller for permissions and defines the permissions inside the controller
+      #
+      # @param [Symbol, String] name name of the controller
+      # @param [Proc] block block to define permissions inside the controller
       def controller(name, &block)
         @controller = name
         instance_exec(&block)
@@ -20,7 +28,14 @@ module Cannie
         @controller = nil
       end
 
-      def allow(action, options={})
+      # Defines the rules for specified action
+      #
+      # @param [String, Symbol, Array<String,Symbol>] action name of the action
+      # @param [Hash] options additional options
+      # @option options [Symbol, String] on name of the controller or list of controller names for which current rule should be applies
+      # @option options [Proc] if current rule should be applied for the action when the `if` block is evaluated to true
+      # @option options [Proc] unless current rule should be applied for the action when the `unless` block is evaluated to false
+      def allow(action, options = {})
         opts = options.slice(:if, :unless)
         subjects = Array(@controller || options[:on]).map { |v| subject(v) }
 
@@ -31,6 +46,9 @@ module Cannie
         end
       end
 
+      # Returns list of currently defined access rules.
+      #
+      # @return [Array<Rule>]
       def rules
         @rules ||= []
       end
