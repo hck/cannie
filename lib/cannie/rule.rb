@@ -36,11 +36,8 @@ module Cannie
     end
 
     def exec_condition(condition, context)
-      if condition.is_a?(Symbol)
-        context.instance_eval(&condition)
-      else
-        context.instance_exec(&condition)
-      end
+      condition = context.method(condition) if condition.is_a?(Symbol)
+      context.instance_exec(&condition)
     end
   end
 end
