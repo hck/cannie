@@ -70,6 +70,9 @@ module Cannie
       !!@_permitted
     end
 
+    # Creates instance of Permissions class for current user if it was not inited yet.
+    #
+    # @returns [Permissions]
     def current_permissions
       @current_permissions ||= ::Permissions.new(current_user)
     end
