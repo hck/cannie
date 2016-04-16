@@ -2,7 +2,7 @@ module Cannie
   class Rule
     attr_reader :action, :subject
 
-    # Initializes new rule
+    # Initializes new rule.
     #
     # @param [Symbol] action action which should be permitted on subject
     # @param [String, Symbol] subject subject of the rule
@@ -15,7 +15,7 @@ module Cannie
       @action, @subject, @_if, @_unless = action, subject, *options.values_at(:if, :unless)
     end
 
-    # Checks whether rule is applied to permissions passed as an argument
+    # Checks whether rule is applied to permissions passed as an argument.
     #
     # @param [Cannie::Permissions] permissions
     # @return [Boolean]
