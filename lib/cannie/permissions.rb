@@ -5,7 +5,7 @@ module Cannie
     end
 
     module ClassMethods
-      # Defines a namespace for permissions and defines the permissions inside the namespace
+      # Defines a namespace for permissions and defines the permissions inside the namespace.
       #
       # @param [Symbol, String] name name of the namespace
       # @param [Proc] block block to define permissions inside the namespace
@@ -17,7 +17,7 @@ module Cannie
         @scope = orig_scope
       end
 
-      # Defines a controller for permissions and defines the permissions inside the controller
+      # Defines a controller for permissions and defines the permissions inside the controller.
       #
       # @param [Symbol, String] name name of the controller
       # @param [Proc] block block to define permissions inside the controller
@@ -28,7 +28,7 @@ module Cannie
         @controller = nil
       end
 
-      # Defines the rules for specified action
+      # Defines the rules for specified action.
       #
       # @param [String, Symbol, Array<String,Symbol>] action name of the action
       # @param [Hash] options additional options
@@ -61,11 +61,15 @@ module Cannie
 
     attr_reader :user
 
+    # Initializes instance of Permissions class for given user
+    #
+    # @param [Object] user a user, whose permissions will be checked
+    # @return [Permissions] new instance of Permissions class
     def initialize(user)
       @user = user
     end
 
-    # Checks if at least one rule for specified action add subject is present
+    # Checks if at least one rule for specified action add subject is present.
     #
     # @param [Symbol] action
     # @param [String, Symbol] subject
@@ -74,7 +78,7 @@ module Cannie
       rules_for(action, subject).present?
     end
 
-    # Raises error Cannie::ActionForbidden if there is no rules for specified action and subject
+    # Raises error Cannie::ActionForbidden if there is no rules for specified action and subject.
     #
     # @param [Symbol] action
     # @param [String, Symbol] subject
@@ -83,6 +87,7 @@ module Cannie
     end
 
     private
+
     def rules
       @rules ||= self.class.rules.select { |rule| rule.applies_to?(self) }
     end
