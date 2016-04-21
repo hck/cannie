@@ -20,11 +20,11 @@ module Cannie
       # @option options [Array, Symbol] only action or list of actions for which permissions should be checked
       # @option options [Array, Symbol] except action or list of actions for which permissions should not be checked
       def check_permissions(options = {})
-        _if, _unless = options.values_at(:if, :unless)
+        condition_if, condition_unless = options.values_at(:if, :unless)
         before_action(options.slice(:only, :except)) do |controller|
           next if controller.permitted?
-          next if _if && !controller.instance_eval(&_if)
-          next if _unless && controller.instance_eval(&_unless)
+          next if condition_if && !controller.instance_eval(&condition_if)
+          next if condition_unless && controller.instance_eval(&condition_unless)
           current_permissions.permit!(controller.action_name, controller)
         end
       end
