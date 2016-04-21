@@ -16,8 +16,9 @@ RSpec.describe Cannie::Rule do
   describe '#applies_to?' do
     let(:permissions) do
       Class.new do
-        def initialize(is_admin=false, is_guest=false)
-          @is_admin, @is_guest = is_admin, is_guest
+        def initialize(is_admin = false, is_guest = false)
+          @is_admin = is_admin
+          @is_guest = is_guest
         end
 
         def admin?
