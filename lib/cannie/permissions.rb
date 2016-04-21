@@ -54,8 +54,9 @@ module Cannie
       end
 
       private
+
       def subject(name)
-        (name == :all && name) || ([@scope, name].compact.join('/'))
+        (name == :all && name) || [@scope, name].compact.join('/')
       end
     end
 
