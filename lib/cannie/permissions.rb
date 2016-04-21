@@ -34,9 +34,12 @@ module Cannie
       #
       # @param [String, Symbol, Array<String,Symbol>] action name of the action
       # @param [Hash] options additional options
-      # @option options [Symbol, String] on name of the controller or list of controller names for which current rule should be applies
-      # @option options [Proc] if current rule should be applied for the action when the `if` block is evaluated to true
-      # @option options [Proc] unless current rule should be applied for the action when the `unless` block is evaluated to false
+      # @option options [Symbol, String] on name of the controller or list of
+      #   controller names for which current rule should be applies
+      # @option options [Proc] if current rule should be applied for the action
+      #   when the `if` block is evaluated to true
+      # @option options [Proc] unless current rule should be applied for the
+      #   action when the `unless` block is evaluated to false
       def allow(action, options = {})
         opts = options.slice(:if, :unless)
         subjects = Array(@controller || options[:on]).map { |v| subject(v) }
