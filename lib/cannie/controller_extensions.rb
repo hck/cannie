@@ -1,10 +1,12 @@
 module Cannie
+  # Adds permission checking methods and filters to ActionController::Base
   module ControllerExtensions
     def self.included(base)
       base.extend ClassMethods
       base.helper_method :can?, :current_permissions
     end
 
+    # Class methods available in the class scope when the ControllerExtensions module is included
     module ClassMethods
       # Adds before action to check permissions before processing the controller's action.
       #

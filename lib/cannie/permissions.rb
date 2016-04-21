@@ -1,9 +1,11 @@
 module Cannie
+  # Module for defining and checking permissions
   module Permissions
     def self.included(base)
       base.extend ClassMethods
     end
 
+    # Class methods available in the class scope for defining permissions
     module ClassMethods
       # Defines a namespace for permissions and defines the permissions inside the namespace.
       #

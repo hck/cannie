@@ -1,5 +1,7 @@
 module Cannie
+  # Cannie generators namespace
   module Generators
+    # Generator of dummy permissions class
     class PermissionsGenerator < Rails::Generators::Base
       source_root File.expand_path('../templates', __FILE__)
 

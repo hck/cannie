@@ -1,4 +1,5 @@
 module Cannie
+  # Rule class
   class Rule
     attr_reader :action, :subject
 
