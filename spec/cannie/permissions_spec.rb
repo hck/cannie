@@ -23,6 +23,7 @@ RSpec.describe Cannie::Permissions do
   let(:klass) do
     Class.new(ActionController::Base) do
       def index; end
+
       def self.controller_path
         'entries'
       end
