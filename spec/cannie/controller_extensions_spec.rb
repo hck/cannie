@@ -8,7 +8,7 @@ RSpec.describe Cannie::ControllerExtensions do
       end
 
       def index
-        @entries = [1,2,3,4,5]
+        @entries = [1, 2, 3, 4, 5]
         render text: @entries.to_s
       end
 
@@ -37,15 +37,13 @@ RSpec.describe Cannie::ControllerExtensions do
       before { klass.check_permissions }
 
       it 'raises exception if no rules for action & subject exist' do
-        expect {
-          subject.dispatch(:action, ActionDispatch::TestRequest.new)
-        }.to raise_error(Cannie::ActionForbidden)
+        block = -> { subject.dispatch(:action, ActionDispatch::TestRequest.new) }
+        expect(&block).to raise_error(Cannie::ActionForbidden)
       end
 
       it 'does not raise exception rules match action & subject' do
-        expect {
-          subject.dispatch(:index, ActionDispatch::TestRequest.new)
-        }.not_to raise_error
+        block = -> { subject.dispatch(:index, ActionDispatch::TestRequest.new) }
+        expect(&block).not_to raise_error
       end
     end
 
@@ -54,16 +52,14 @@ RSpec.describe Cannie::ControllerExtensions do
 
       it 'raises exception if :if block executed in controller scope returns true and no rules for action/subject' do
         allow(subject).to receive(:condition?).and_return(true)
-        expect {
-          subject.dispatch(:action, ActionDispatch::TestRequest.new)
-        }.to raise_error(Cannie::ActionForbidden)
+        block = -> { subject.dispatch(:action, ActionDispatch::TestRequest.new) }
+        expect(&block).to raise_error(Cannie::ActionForbidden)
       end
 
       it 'does not raise exception if :if block executed in controller scope returns false' do
         allow(subject).to receive(:condition?).and_return(false)
-        expect {
-          subject.dispatch(:action, ActionDispatch::TestRequest.new)
-        }.not_to raise_error
+        block = -> { subject.dispatch(:action, ActionDispatch::TestRequest.new) }
+        expect(&block).not_to raise_error
       end
     end
 
@@ -72,16 +68,14 @@ RSpec.describe Cannie::ControllerExtensions do
 
       it 'raises exception if :unless block executed in controller scope returns false' do
         allow(subject).to receive(:condition?).and_return(false)
-        expect {
-          subject.dispatch(:action, ActionDispatch::TestRequest.new)
-        }.to raise_error(Cannie::ActionForbidden)
+        block = -> { subject.dispatch(:action, ActionDispatch::TestRequest.new) }
+        expect(&block).to raise_error(Cannie::ActionForbidden)
       end
 
       it 'does not raise exception if :unless block executed in controller scope returns false' do
         allow(subject).to receive(:condition?).and_return(true)
-        expect {
-          subject.dispatch(:action, ActionDispatch::TestRequest.new)
-        }.not_to raise_error
+        block = -> { subject.dispatch(:action, ActionDispatch::TestRequest.new) }
+        expect(&block).not_to raise_error
       end
     end
   end
@@ -101,12 +95,12 @@ RSpec.describe Cannie::ControllerExtensions do
 
     it 'returns true if action allowed on subject' do
       allow(subject).to receive(:current_permissions).and_return permissions.new('user')
-      expect(subject.can? :index, on: klass).to eq(true)
+      expect(subject.can?(:index, on: klass)).to eq(true)
     end
 
     it 'returns false if action not allowed on subject' do
       allow(subject).to receive(:current_permissions).and_return permissions.new('user')
-      expect(subject.can? :action, on: klass).to eq(false)
+      expect(subject.can?(:action, on: klass)).to eq(false)
     end
   end
 
