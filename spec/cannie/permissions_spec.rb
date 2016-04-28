@@ -2,9 +2,7 @@ require 'spec_helper'
 
 RSpec.describe Cannie::Permissions do
   subject do
-    Class.new do
-      include Cannie::Permissions
-    end
+    Class.new { include Cannie::Permissions }
   end
 
   let(:permissions) do
